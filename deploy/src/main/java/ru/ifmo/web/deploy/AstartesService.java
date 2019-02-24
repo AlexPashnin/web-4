@@ -25,16 +25,16 @@ public class AstartesService {
     @WebMethod
     @GET
     @Path("/all")
-    public List<Astartes> findAll() throws SQLException {
-        return astartesDAO.findAll();
+    public AstartesWrapper findAll() throws SQLException {
+        return new AstartesWrapper( astartesDAO.findAll());
     }
 
     @WebMethod
     @GET
     @Path("/filter")
-    public List<Astartes> findWithFilters(@QueryParam("id") Long id, @QueryParam("name") String name,
+    public AstartesWrapper findWithFilters(@QueryParam("id") Long id, @QueryParam("name") String name,
                                           @QueryParam("title") String title, @QueryParam("position") String position,
                                           @QueryParam("planet") String planet, @QueryParam("birthdate") Date birthdate) throws SQLException {
-        return astartesDAO.findWithFilters(id, name, title, position, planet, birthdate);
+        return new AstartesWrapper(astartesDAO.findWithFilters(id, name, title, position, planet, birthdate));
     }
 }
