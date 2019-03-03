@@ -11,6 +11,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -22,13 +24,9 @@ import java.util.List;
 public class AstartesService {
     private AstartesDAO astartesDAO;
 
-    public AstartesService() {
-        PGSimpleDataSource source = new PGSimpleDataSource();
-        source.setServerName("localhost");
-        source.setDatabaseName("astartes_db");
-        source.setUser("webuser");
-        source.setPassword("webpassword");
-        this.astartesDAO = new AstartesDAO(source);
+    public AstartesService() throws SQLException {
+        Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/astartes_db", "webuser", "webpassword");
+        this.astartesDAO = new AstartesDAO(connection);
     }
 
     @GET

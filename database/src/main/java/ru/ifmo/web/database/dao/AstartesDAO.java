@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Slf4j
 public class AstartesDAO {
-    private final DataSource dataSource;
+    private final Connection connection;
 
     private final String TABLE_NAME = "astartes";
     private final String ID = "id";
@@ -37,13 +37,11 @@ public class AstartesDAO {
 
     public List<Astartes> findAll() throws SQLException {
         log.info("Find all");
-        try (Connection connection = dataSource.getConnection()) {
             java.sql.Statement statement = connection.createStatement();
             StringBuilder query = new StringBuilder();
             statement.execute(query.append("SELECT ").append(String.join(", ", columnNames)).append(" FROM ").append(TABLE_NAME).toString());
             List<Astartes> result = resultSetToList(statement.getResultSet());
             return result;
-        }
     }
 
     public List<Astartes> findWithFilters(Long id, String name, String title, String position, String planet, Date birthdate) throws SQLException {
@@ -105,18 +103,15 @@ public class AstartesDAO {
         }
 
         log.debug("Query string {}", query.toString());
-        try (Connection connection = dataSource.getConnection()) {
             PreparedStatement ps = connection.prepareStatement(query.toString());
             fillPreparedStatement(ps, statements);
             ResultSet rs = ps.executeQuery();
             return resultSetToList(rs);
-        }
 
     }
 
     public Long create(String name, String title, String position, String planet, Date birthdate) throws SQLException {
         log.debug("Create with params {} {} {} {} {}", name, title, position, planet, birthdate);
-        try (Connection connection = dataSource.getConnection()) {
             StringBuilder query = new StringBuilder();
             query.append("INSERT INTO ").append(TABLE_NAME).append("(").append(String.join(",", columnNames)).append(") VALUES(?,?,?,?,?,?)");
             connection.setAutoCommit(false);
@@ -144,24 +139,20 @@ public class AstartesDAO {
             connection.commit();
             connection.setAutoCommit(true);
             return newId;
-        }
     }
 
     public int delete(long id) throws SQLException {
         log.debug("Delete with id {}", id);
-        try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
             try (PreparedStatement ps = connection.prepareStatement("DELETE FROM " + TABLE_NAME + " WHERE id = ?")) {
                 ps.setLong(1, id);
                 return ps.executeUpdate();
             }
-        }
     }
 
     public int update(long id, String name, String title, String position, String planet, Date birthdate) throws SQLException {
         log.debug("Update id {} and new values {} {} {} {} {}", id, name, title, position, planet, birthdate);
-        try (Connection conn = dataSource.getConnection()) {
-            conn.setAutoCommit(true);
+            connection.setAutoCommit(true);
             StringBuilder query = new StringBuilder("UPDATE " + TABLE_NAME + " SET ");
             int i = 1;
             List<Statement> statements = new ArrayList<>();
@@ -205,12 +196,11 @@ public class AstartesDAO {
 
             statements.add(new Statement(i, id, getSqlType(Long.class)));
             query.append(" WHERE id = ?");
-            try (PreparedStatement ps = conn.prepareStatement(query.toString())) {
+            try (PreparedStatement ps = connection.prepareStatement(query.toString())) {
                 fillPreparedStatement(ps, statements);
                 int updated = ps.executeUpdate();
                 return updated;
             }
-        }
     }
 
     private List<Astartes> resultSetToList(ResultSet rs) throws SQLException {
